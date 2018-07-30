@@ -1,3 +1,7 @@
 # Giphy Slash Command for Dooray! Messenger
 
-![Alt text](/../develop/images/slack.png "Optional Title")
+## Dooray! Messenger
+![Dooray! Messenger](/../develop/images/dooray.png "Dooray! Messenger")
+
+## Slack
+![Slack](/../develop/images/slack.png "Slack")
