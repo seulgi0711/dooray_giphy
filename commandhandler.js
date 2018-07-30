@@ -1,13 +1,15 @@
 import Future from 'fluture';
 import {
+    concat,
+    flip,
     append,
     head,
     map,
     merge,
-    tap,
     path,
     pipe,
-    prop
+    prop,
+    tap
 } from 'ramda';
 import requester from './requester';
 import {
@@ -21,18 +23,14 @@ const searchGiphy = (keyword) => {
     })
 }
 
-const appendAddButton = (attachments) => {
-    return append({
-            "actions": [{
-                "name": "send",
-                "text": "보내기(미구현)",
-                "type": "button",
-                "value": "send"
-            }]
-        },
-        attachments
-    )
-}
+const appendAddButton = append({
+    "actions": [{
+        "name": "send",
+        "text": "보내기(미구현)",
+        "type": "button",
+        "value": "send"
+    }]
+})
 
 const getOriginalUrl = pipe(
     prop('data'),
@@ -45,10 +43,7 @@ const makeResponseMessageForSlack = pipe(
     wrapWithObject('image_url'),
     wrapWithArray,
     appendAddButton,
-    wrapWithObject('attachments'),
-    merge({
-        text: 'Text'
-    })
+    wrapWithObject('attachments')
 );
 
 const makeResponseMessageForDooray = pipe(
@@ -56,10 +51,14 @@ const makeResponseMessageForDooray = pipe(
     wrapWithObject('imageUrl'),
     wrapWithArray,
     appendAddButton,
-    wrapWithObject('attachments'),
-    merge({
-        text: 'Text'
-    })
+    wrapWithObject('attachments')
+)
+
+const makeKeywordText = pipe(
+    prop('text'),
+    concat('\''),
+    flip(concat)('\'에 대한 검색 결과'),
+    wrapWithObject('text')
 )
 
 // search :: Obj -> Future [Obj]
@@ -71,14 +70,16 @@ const search = pipe(
 const slack = (body) => {
     return pipe(
         search,
-        map(makeResponseMessageForSlack)
+        map(makeResponseMessageForSlack),
+        map(merge(makeKeywordText(body)))
     )(body);
 }
 
 const dooray = (body) => {
     return pipe(
         search,
-        map(makeResponseMessageForDooray)
+        map(makeResponseMessageForDooray),
+        map(merge(makeKeywordText(body)))
     )(body);
 }
 
