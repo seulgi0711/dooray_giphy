@@ -7,7 +7,7 @@ const Giphy = {
             params: {
                 api_key: '8JyP74RbDTroHrzNyXt8zaAWkBeIe81l',
                 q,
-                limit: 25,
+                limit: 1,
                 offset: 0,
                 fmt: 'json'
             }

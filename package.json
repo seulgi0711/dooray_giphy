@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "babel-node index"
+    "test": "mocha src/**/*.spec.js --require babel-register",
+    "build": "babel src -s -D -d dist",
+    "dev": "pm2 start ecosystem.config.js --env development",
+    "start": "pm2 start ecosystem.config.js --env production"
   },
   "keywords": [],
   "author": "",
@@ -15,12 +17,16 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "fluture": "^9.0.1",
+    "hm-def": "^0.3.2",
     "query-string": "^6.1.0",
     "ramda": "^0.25.0",
     "ramda-fantasy": "^0.8.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.7.0"
+    "babel-preset-env": "^1.7.0",
+    "babel-register": "^6.26.0",
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0"
   }
 }
