@@ -1,84 +1,35 @@
-import Future from 'fluture';
+import { always, converge, map, merge, pipe, prop } from "ramda";
+import requester from "../requester/requester";
+import { def } from "../types/types";
+import { liftA2 } from "../utils/fnUtil";
 import {
-    concat,
-    flip,
-    append,
-    head,
-    map,
-    merge,
-    path,
-    pipe,
-    prop,
-    tap
-} from 'ramda';
-import requester from '../requester';
-import {
-    wrapWithArray,
-    wrapWithObject
-} from '../utils/fnUtil';
-import {def} from '../types';
+    convertSearchIntoAttachments,
+    createImageAttachment,
+    createKeywordText,
+    createNextAction,
+    createSendAction
+} from "../utils/responseUtil";
 
-export const searchGiphy = def(
-    'searchGiphy :: String -> Future Object Object',
-    (keyword) => {
-        return Future((rej, res) => {
-            requester.Giphy.search(keyword).then(pipe(prop('data'), res)).catch(rej);
-        });
-    }
-)
+const actionsAttachment = {
+    actions: [createSendAction(undefined), createNextAction(1)]
+};
 
-// export const searchGiphy = (keyword) => {
-//     return Future((rej, res) => {
-//         requester.Giphy.search(keyword).then(pipe(prop('data'), res)).catch(rej);
-//     });
-// }
-
-const appendAddButton = append({
-    "actions": [{
-        "name": "send",
-        "text": "보내기(미구현)",
-        "type": "button",
-        "value": "send"
-    }]
-})
-
-export const getOriginalUrl = (a) => {
-    return pipe(
-        prop('data'),
-        head,
-        path(['images', 'original', 'url'])
-    )(a);
-}
-
-const makeResponseMessageForDooray = pipe(
-    getOriginalUrl,
-    wrapWithObject('imageUrl'),
-    wrapWithArray,
-    appendAddButton,
-    wrapWithObject('attachments')
-)
-
-const makeKeywordText = pipe(
-    prop('text'),
-    concat('\''),
-    flip(concat)('\'에 대한 검색 결과'),
-    wrapWithObject('text')
-)
-
-// search :: Obj -> Future [Obj]
-const search = pipe(
-    prop('text'),
-    searchGiphy
+// prettier-ignore
+const search = def(
+    'search :: Object -> Future Object Object',
+    pipe(
+        prop("text"),
+        requester.Giphy.search,
+        map(converge(convertSearchIntoAttachments, [always(actionsAttachment), createImageAttachment]))
+    )
 );
 
-const dooray = (body) => {
-    return pipe(
-        search,
-        map(makeResponseMessageForDooray),
-        map(merge(makeKeywordText(body)))
-    )(body);
-}
+const commandHandler = def(
+    "commandHandler :: Object -> Future Object Object",
+    pipe(
+        prop("body"),
+        converge(liftA2(merge), [createKeywordText, search])
+    )
+);
 
-export default {
-    dooray
-};
+export default commandHandler;
