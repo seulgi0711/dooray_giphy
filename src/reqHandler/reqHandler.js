@@ -4,13 +4,14 @@ import { cond, converge, evolve, juxt, map, mergeAll, pick, pipe, prop, propOr, 
 import requester from "../requester/requester";
 import { def } from "../types/types";
 import { isSearchButton, isSendButton } from "../utils/actionUtil";
+import { extractOffset, getSearchKeyword } from "../utils/requestUtil";
 import {
-    convertSearchIntoAttachments,
     createActions,
-    createImageAttachment,
+    createOriginImageAttachment,
     createInChannelResponse,
     createKeywordText,
-    createReplaceResponse
+    createReplaceResponse,
+    mergeActionAndImageAttachment
 } from "../utils/responseUtil";
 
 export const createSendResult = def(
@@ -25,31 +26,18 @@ export const createSendResult = def(
     )
 );
 
-export const extractKeyword = def(
-    "extractKeyword :: Object -> String",
-    propOr("", "text")
-);
-
-export const extractOffset = def(
-    "extractOffset :: Object -> Number",
-    pipe(
-        propOr("0", "actionValue"),
-        parseInt
-    )
-);
-
 export const search = def(
     "search :: Object -> Future Object Object",
     pipe(
-        converge(requester.Giphy.searchWithOffset, [extractKeyword, extractOffset]),
-        map(createImageAttachment)
+        converge(requester.Giphy.searchWithOffset, [getSearchKeyword, extractOffset]),
+        map(createOriginImageAttachment)
     )
 );
 
 export const mergeSearchAttachments = def(
     "mergeSearchAttachments :: Future Object Object -> Object -> Future Object Object",
     (searchResult, actionsAttachments) => {
-        return searchResult.map(convertSearchIntoAttachments(actionsAttachments));
+        return searchResult.map(mergeActionAndImageAttachment(actionsAttachments));
     }
 );
 
@@ -58,6 +46,7 @@ export const createSearchAttachments = def(
     converge(mergeSearchAttachments, [search, createActions])
 );
 
+// prettier-ignore
 export const createSearchResult = def(
     "createSearchResult :: Object -> Future Object Object",
     pipe(

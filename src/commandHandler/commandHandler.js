@@ -1,34 +1,112 @@
-import { always, converge, map, merge, pipe, prop } from "ramda";
+import Future from 'fluture';
+import {
+    always,
+    append,
+    cond,
+    converge,
+    equals,
+    ifElse,
+    juxt,
+    map,
+    merge,
+    mergeAll,
+    objOf,
+    of,
+    pipe,
+    prop,
+    T
+} from "ramda";
 import requester from "../requester/requester";
 import { def } from "../types/types";
-import { liftA2 } from "../utils/fnUtil";
+import { liftA2, logTap } from "../utils/fnUtil";
+import { extractMultiCount, extractOffset, getOriginalUrl, getSearchKeyword, isMultiImage } from "../utils/requestUtil";
 import {
-    convertSearchIntoAttachments,
-    createImageAttachment,
     createKeywordText,
+    createMultiImageAttachments,
     createNextAction,
-    createSendAction
+    createOriginImageAttachment,
+    createOriginImagesAttachment,
+    createSendActionWithValue,
+    mergeActionAndImageAttachment,
+    mergeActionAndImagesAttachments
 } from "../utils/responseUtil";
 
-const actionsAttachment = {
-    actions: [createSendAction(undefined), createNextAction(1)]
+const actionsAttachmentForOne = def(
+    'actionsAttachmentForOne :: Object -> Object',
+    pipe(
+        getOriginalUrl,
+        createSendActionWithValue,
+        of,
+        append(createNextAction(1)),
+        objOf('actions')
+    )
+);
+
+const actionsAttachmentForMulti = {
+    actions: [createNextAction(1)]
 };
 
 // prettier-ignore
 const search = def(
     'search :: Object -> Future Object Object',
     pipe(
-        prop("text"),
+        getSearchKeyword,
         requester.Giphy.search,
-        map(converge(convertSearchIntoAttachments, [always(actionsAttachment), createImageAttachment]))
+        map(converge(mergeActionAndImageAttachment, [actionsAttachmentForOne, createOriginImageAttachment]))
     )
 );
 
+// prettier-ignore
+const searchMulti = def(
+    "searchMulti :: Object -> Future Object Object",
+    pipe(
+        converge(requester.Giphy.searchMulti, [getSearchKeyword, extractMultiCount]),
+        map(converge(mergeActionAndImagesAttachments, [always(actionsAttachmentForMulti), createMultiImageAttachments])),
+        map(logTap('searchMulti output'))
+    )
+);
+
+const createActionsAttachment = def(
+    'createActionsAttachment :: ReqBody -> '
+)
+
+const createSearchAttachments = def(
+    'createSearchAttachments :: ReqBody -> Future Object Object',
+    pipe(
+        converge(requester.Giphy.search, [getSearchKeyword, extractMultiCount, extractOffset]),
+        map(converge(merge, [createOriginImagesAttachment, createActionsAttachment])),
+        map(of),
+        map(objOf('attachments')),
+        map(logTap('createOriginImagesAttachment'))
+    ));
+
+const searchOneImage = def(
+    "searchOneImage :: Object -> Future Object Object",
+    pipe(
+        juxt([pipe(createKeywordText, Future.of), createSearchAttachments]),
+        Future.parallel(Infinity),
+        map(mergeAll)
+    )
+);
+
+const searchMultiImages = def(
+    "searchMultiImages :: Object -> Future Object Object",
+    ifElse(
+        pipe(extractMultiCount, equals(1)),
+        searchOneImage,
+        converge(liftA2(merge), [pipe(createKeywordText, Future.of), searchMulti])
+    )
+);
+
+// prettier-ignore
 const commandHandler = def(
     "commandHandler :: Object -> Future Object Object",
     pipe(
         prop("body"),
-        converge(liftA2(merge), [createKeywordText, search])
+        cond([
+            [isMultiImage, searchMultiImages],
+            [T, searchOneImage]
+        ])
     )
 );
 

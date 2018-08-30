@@ -26,10 +26,10 @@ app.get("/", (req, res) => {
 });
 
 app.post("/giphy", (req, res) => {
-    commandHandler(req).fork(
-        console.error,
-        result => res.send(result)
-    );
+    commandHandler(req).value(result => {
+        console.log(result);
+        return res.send(result);
+    });
 });
 
 app.post("/req", (req, res) => {

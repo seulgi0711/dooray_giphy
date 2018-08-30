@@ -1,30 +1,29 @@
 import axios from "axios";
 import Future from 'fluture';
-import { head, path, pipe } from 'ramda';
+import { curry, head, path, pipe } from 'ramda';
+import { logTap } from '../utils/fnUtil';
 
-const search = (q, offset) => {
+const search = (q, limit = 1, offset = 0) => {
     console.log('q', q);
+    console.log('limit', limit);
     console.log('offset', offset);
     return Future((rej, res) => {
         axios.get("http://api.giphy.com/v1/gifs/search", {
             params: {
                 api_key: "8JyP74RbDTroHrzNyXt8zaAWkBeIe81l",
-                q,
-                limit: 1,
-                offset,
                 fmt: "json",
-                lang: "ko"
+                lang: "ko",
+                q,
+                limit,
+                offset
             }
-        }).then(pipe(path(['data', 'data']), head, res)).catch(rej);
+        }).then(pipe(path(['data', 'data']), res)).catch(rej);
     });
 };
 
 const Giphy = {
-    search: q => {
-        return search(q, 0);
-    },
-    searchWithOffset: (q, offset) => {
-        return search(q, offset);
+    search: (q, limit, offset) => {
+        return search(q, limit, offset);
     }
 };
 
