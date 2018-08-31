@@ -40,7 +40,7 @@ export const isMultiImage = def(
 // prettier-ignore
 export const getSearchKeyword = def(
     'getSearchKeyword :: ReqBody -> String',
-    pipe(prop("text"), trim, split(' '), head)
+    pipe(prop("text"), trim, split('--'), head, split(' '), head)
 );
 
 // prettier-ignore
@@ -67,3 +67,10 @@ export const getActionName = def(
     'getActionName :: ReqBody -> String',
     propOr(BUTTON_TYPE.NEXT, 'actionName')
 );
+
+export const validateKeyword = def(
+    'validateKeyword :: String -> Maybe String',
+    (keyword) => {
+        return isEmpty(keyword) ? Maybe.Nothing() : Maybe.Just(keyword);
+    }
+)

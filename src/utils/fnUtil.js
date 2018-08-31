@@ -42,3 +42,7 @@ export const rename = curry((keysMap, obj) => {
         keys(obj)
     );
 });
+
+export const mEither = curry((f, g, e) => {
+    return e.isLeft ? f(e.value) : g(e.value);
+});

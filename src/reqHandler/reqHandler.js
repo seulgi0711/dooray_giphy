@@ -1,7 +1,7 @@
 import Future from "fluture";
 import { parseInt } from "lodash";
 import { cond, converge, dissoc, evolve, head, identity, map, pick, pipe, prop, slice, T, update } from "ramda";
-import { searchOneImage } from "../giphySearcher";
+import { searchImage } from "../giphySearcher";
 import requester from "../requester/requester";
 import { def } from "../types/types";
 import { getActionValue, isSearchButton, isSendButton } from "../utils/actionUtil";
@@ -38,7 +38,6 @@ export const createSendResult = def(
             prop("originalMessage"),
             pick(["text", "attachments"]),
             evolve({ attachments: pickAttachmentForSend(parseInt(getActionValue(reqBody))) }),
-            logTap('attachments'),
             createInChannelResponse,
             createReplaceResponse,
             Future.of
@@ -62,7 +61,7 @@ const reqHandler = def(
         prop("body"),
         cond([
             [isSendButton, createSendResult],
-            [isSearchButton, searchOneImage],
+            [isSearchButton, searchImage],
             [T, Future.of({ text: 'nono' })]
         ]),
     )

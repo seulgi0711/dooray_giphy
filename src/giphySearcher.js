@@ -1,22 +1,50 @@
 import Future from "fluture";
-import { always, append, converge, equals, ifElse, juxt, length, map, merge, mergeAll, objOf, of, pipe } from 'ramda';
+import {
+    __,
+    always,
+    append,
+    converge,
+    equals,
+    head,
+    ifElse,
+    juxt,
+    map,
+    merge,
+    mergeAll,
+    objOf,
+    of,
+    pathEq,
+    pipe,
+    prop
+} from 'ramda';
+import { Either, Maybe } from 'ramda-fantasy';
 import { BUTTON_TYPE } from './constant';
 import requester from './requester/requester';
 import { def } from './types/types';
 import { logTap, mapIndexed } from './utils/fnUtil';
-import { extractMultiCount, extractOffset, getActionName, getSearchKeyword } from './utils/requestUtil';
+import {
+    extractMultiCount,
+    extractOffset,
+    getActionName,
+    getSearchKeyword,
+    validateKeyword
+} from './utils/requestUtil';
 import {
     createKeywordText,
-    createNextActions,
+    createNextActions, createNoResultKeywordText,
     createOriginImageAttachment,
     createPrevActions,
-    createSendAction, createThumbImageAttachment
+    createSendAction,
+    createThumbImageAttachment
 } from './utils/responseUtil';
 
 // prettier-ignore
 const searchGiphyByReqBody = def(
     'searchGiphyByReqBody :: ReqBody -> Future Object Object',
-    converge(requester.Giphy.search, [getSearchKeyword, extractMultiCount, extractOffset])
+    pipe(
+        converge(requester.Giphy.search, [getSearchKeyword, extractMultiCount, extractOffset]),
+        map(prop('data'))
+    )
 );
 
 // prettier-ignore
@@ -77,19 +105,83 @@ const createAttachmentsBySearchResult = def(
     }
 );
 
+export const createNoResultAttachment = def(
+    'createNoResultAttachment :: Object -> Future Object Object',
+    () => {
+        return pipe(
+            searchGiphyByReqBody,
+            map(prop('data')),
+            map(head),
+            map(createOriginImageAttachment),
+            // map(merge(__, { title: '검색 결과가 없습니다.' })),
+            map(of),
+            map(objOf('attachments'))
+        )({ text: 'what', command: '', responseUrl: '' })
+
+    }
+)
+
 // prettier-ignore
 export const createSearchAttachments = def(
     "createSearchAttachments :: ReqBody -> Future Object Object",
     (reqBody) => {
         return pipe(
             searchGiphyByReqBody,
+            map(prop('data')),
             map(createAttachmentsBySearchResult(reqBody))
         )(reqBody)
     }
 );
 
-export const searchOneImage = def(
-    "searchOneImage :: ReqBody -> Future Object Object",
+export const validateKeywordFromReq = def(
+    'validateKeywordFromReq :: ReqBody -> Either ReqBody ReqBody',
+    (reqBody) => {
+        return pipe(
+            getSearchKeyword,
+            validateKeyword,
+            ifElse(Maybe.isNothing, () => Either.Left(reqBody), () => Either.Right(reqBody))
+        )(reqBody);
+    }
+);
+
+const helpDescription = `/giphy 키워드 -> 키워드에 해당하는 이미지를 검색합니다.
+
+/giphy 키워드 --multi=n -> 이미지를 n개씩 검색합니다. (1 <= n <=5 )
+
+`;
+
+export const createNoKeywordSearchAttachments = def(
+    'createNoKeywordSearchAttachments :: ReqBody -> Future Object Object',
+    (reqBody) => {
+        return pipe(
+            searchGiphyByReqBody,
+            map(prop('data')),
+            map(head),
+            map(createOriginImageAttachment),
+            map(merge(__, {
+                title: '\'/giphy typing\'를 입력한 결과입니다.',
+                text: helpDescription
+            })),
+            map(of),
+            map(objOf('attachments'))
+        )(reqBody)
+    }
+);
+
+export const createNoKeywordResponse = def(
+    'createNoKeywordResponse :: Object -> Future Object Object',
+    (reqBody) => {
+        return pipe(
+            juxt([always(Future.of({ text: '키워드를 입력해 주세요.', })), createNoKeywordSearchAttachments]),
+            Future.parallel(Infinity),
+            map(mergeAll)
+        )({ text: 'typing', command: '', responseUrl: '' })
+    }
+);
+
+// prettier-ignore
+export const searchImage = def(
+    "searchImage :: ReqBody -> Future Object Object",
     pipe(
         juxt([pipe(createKeywordText, Future.of), createSearchAttachments]),
         Future.parallel(Infinity),
@@ -97,11 +189,10 @@ export const searchOneImage = def(
     )
 );
 
-export const searchMultiImages = def(
-    'searchMultiImages :: ReqBody -> Future Object Object',
+export const createNoResultResponse = def(
+    'createNoResultResponse :: Object -> Future Object Object',
     pipe(
-        juxt([pipe(createKeywordText, Future.of), createSearchAttachments]),
+        juxt([pipe(createNoResultKeywordText, Future.of), createNoResultAttachment]),
         Future.parallel(Infinity),
         map(mergeAll)
-    )
-);
+    ))

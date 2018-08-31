@@ -1,7 +1,10 @@
 import bodyParser from "body-parser";
 import express from "express";
+import { cond, equals, T } from 'ramda';
 import commandHandler from "./commandHandler/commandHandler";
+import { createNoResultResponse } from "./giphySearcher";
 import reqHandler from "./reqHandler/reqHandler";
+import { logTap } from './utils/fnUtil';
 
 const app = express();
 
@@ -25,17 +28,18 @@ app.get("/", (req, res) => {
     res.send("Test");
 });
 
+// prettier-ignore
 app.post("/giphy", (req, res) => {
-    commandHandler(req).value(result => {
-        return res.send(result);
-    });
+    commandHandler(req).fork(cond([
+            [equals('no result'), () => createNoResultResponse(req.body).value(result => res.send(result))],
+            [T, console.error]
+        ]),
+        result => res.send(result)
+    );
 });
 
 app.post("/req", (req, res) => {
-    reqHandler(req).fork(
-        console.error,
-        result => res.send(result)
-    );
+    reqHandler(req).fork(console.error, result => res.send(result));
 });
 
 app.listen(app.get("port"), () => {

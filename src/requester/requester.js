@@ -1,7 +1,6 @@
 import axios from "axios";
 import Future from 'fluture';
 import { path, pipe } from 'ramda';
-import { logTap } from '../utils/fnUtil';
 
 const search = (q, limit = 1, offset = 0) => {
     return Future((rej, res) => {
@@ -14,7 +13,12 @@ const search = (q, limit = 1, offset = 0) => {
                 limit,
                 offset
             }
-        }).then(pipe(logTap('origin'), path(['data', 'data']), res)).catch(rej);
+        }).then((result) => {
+            if (result.data.pagination.count === 0) {
+                return rej('no result');
+            }
+            res(result);
+        }).catch(rej);
     });
 };
 

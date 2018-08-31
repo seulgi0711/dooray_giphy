@@ -52,10 +52,30 @@ const ReqBody = $.NullaryType(
     allPass([has('responseUrl'), has('command'), has('text')])
 );
 
+const maybeTypeId = 'ramda-fantasy/Maybe';
+const eitherTypeId = 'ramda-fantasy/Either';
+
+const $Either = $.BinaryType(
+    eitherTypeId,
+    'https://github.com/ramda/ramda-fantasy/blob/master/docs/Either.md',
+    checkTypeId(eitherTypeId),
+    either => (either.isLeft ? [either.value] : []),
+    either => (either.isRight ? [either.value] : [])
+);
+
+const $Maybe = $.UnaryType(
+    maybeTypeId,
+    'https://github.com/ramda/ramda-fantasy/blob/master/docs/Maybe.md',
+    checkTypeId(maybeTypeId),
+    maybe => (maybe.isJust ? [maybe.value] : [])
+);
+
 export const def = HMD.create({
     checkTypes: true,
     env: $.env.concat([
+        $Either($.Unknown, $.Unknown),
         $Future($.Unknown, $.Unknown),
+        $Maybe($.Unknown),
         Button,
         ButtonType,
         InChannelResponse,

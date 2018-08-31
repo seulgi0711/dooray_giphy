@@ -91,6 +91,16 @@ export const createKeywordText = def(
     )
 );
 
+export const createNoResultKeywordText = def(
+    'createNoResultKeywordText :: Object -> Object',
+    pipe(
+        getSearchKeyword,
+        concat("'"),
+        flip(concat)("'에 대한 검색 결과가 없습니다."),
+        objOf("text")
+    )
+)
+
 export const createSendAction = def(
     'createSendAction :: Number -> Object',
     assoc("value", __, {

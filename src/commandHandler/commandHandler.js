@@ -1,17 +1,15 @@
-import { cond, pipe, prop, T } from "ramda";
-import { searchMultiImages, searchOneImage } from '../giphySearcher';
+import { pipe, prop } from "ramda";
+import { createNoKeywordResponse, searchImage, validateKeywordFromReq } from '../giphySearcher';
 import { def } from "../types/types";
-import { isMultiImage } from '../utils/requestUtil';
+import { mEither } from '../utils/fnUtil';
 
 // prettier-ignore
 const commandHandler = def(
     "commandHandler :: Object -> Future Object Object",
     pipe(
         prop("body"),
-        cond([
-            [isMultiImage, searchMultiImages],
-            [T, searchOneImage]
-        ])
+        validateKeywordFromReq,
+        mEither(createNoKeywordResponse, searchImage)
     )
 );
 
