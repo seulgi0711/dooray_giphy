@@ -1,6 +1,6 @@
 import Future from "fluture";
 import HMD from "hm-def";
-import { anyPass, compose, curry, equals, path, propEq, values } from "ramda";
+import { allPass, anyPass, compose, curry, equals, has, path, propEq, values } from "ramda";
 import $ from "sanctuary-def";
 import $type from "sanctuary-type-identifiers";
 import { BUTTON_TYPE, RESPONSE_TYPE } from "../constant";
@@ -46,6 +46,12 @@ const ReplaceResponse = $.NullaryType(
     propEq("deleteOriginal", true)
 );
 
+const ReqBody = $.NullaryType(
+    "DoorayGiphy/ReqBody",
+    "",
+    allPass([has('responseUrl'), has('command'), has('text')])
+);
+
 export const def = HMD.create({
     checkTypes: true,
     env: $.env.concat([
@@ -53,6 +59,7 @@ export const def = HMD.create({
         Button,
         ButtonType,
         InChannelResponse,
-        ReplaceResponse
+        ReplaceResponse,
+        ReqBody
     ])
 });
