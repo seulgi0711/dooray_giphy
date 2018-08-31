@@ -3,13 +3,15 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.extractOffset = exports.extractMultiCount = exports.getSearchKeyword = exports.isMultiImage = exports.getFixedHeightSmallUrl = exports.getOriginalUrl = exports.getImageUrl = exports.maybe = undefined;
+exports.getActionName = exports.extractOffset = exports.extractMultiCount = exports.getSearchKeyword = exports.isMultiImage = exports.getFixedSmallUrl = exports.getOriginalUrl = exports.getImageUrl = exports.maybe = undefined;
 
 var _lodash = require("lodash");
 
 var _ramda = require("ramda");
 
 var _ramdaFantasy = require("ramda-fantasy");
+
+var _constant = require("../constant");
 
 var _types = require("../types/types");
 
@@ -32,7 +34,7 @@ var getImageUrl = exports.getImageUrl = (0, _types.def)('getImageUrl :: String -
 var getOriginalUrl = exports.getOriginalUrl = (0, _types.def)("getOriginalUrl :: Object -> String", getImageUrl('original'));
 
 // prettier-ignore
-var getFixedHeightSmallUrl = exports.getFixedHeightSmallUrl = (0, _types.def)("getOriginalUrl :: Object -> String", getImageUrl('fixed_height_small'));
+var getFixedSmallUrl = exports.getFixedSmallUrl = (0, _types.def)("getOriginalUrl :: Object -> String", getImageUrl('fixed_height_small'));
 
 // prettier-ignore
 var isMultiImage = exports.isMultiImage = (0, _types.def)('isMultiImage :: ReqBody -> Boolean', (0, _ramda.pipe)((0, _ramda.prop)('text'), (0, _ramda.test)(/--multi=/)));
@@ -45,4 +47,6 @@ var extractMultiCount = exports.extractMultiCount = (0, _types.def)('extractMult
 
 // prettier-ignore
 var extractOffset = exports.extractOffset = (0, _types.def)("extractOffset :: ReqBody -> Number", (0, _ramda.pipe)((0, _ramda.propOr)("0", "actionValue"), _lodash.parseInt));
+
+var getActionName = exports.getActionName = (0, _types.def)('getActionName :: ReqBody -> String', (0, _ramda.propOr)(_constant.BUTTON_TYPE.NEXT, 'actionName'));
 //# sourceMappingURL=requestUtil.js.map

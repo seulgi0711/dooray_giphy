@@ -49,7 +49,7 @@ const ReplaceResponse = $.NullaryType(
 const ReqBody = $.NullaryType(
     "DoorayGiphy/ReqBody",
     "",
-    allPass([has('channelId'), has('responseUrl'), has('command'), has('text')])
+    allPass([has('responseUrl'), has('command'), has('text')])
 );
 
 export const def = HMD.create({

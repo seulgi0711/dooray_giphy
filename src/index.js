@@ -27,7 +27,6 @@ app.get("/", (req, res) => {
 
 app.post("/giphy", (req, res) => {
     commandHandler(req).value(result => {
-        console.log(result);
         return res.send(result);
     });
 });

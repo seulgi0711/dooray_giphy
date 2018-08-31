@@ -46,7 +46,7 @@ var InChannelResponse = _sanctuaryDef2.default.NullaryType("DoorayGiphy/InChanne
 
 var ReplaceResponse = _sanctuaryDef2.default.NullaryType("DoorayGiphy/ReplaceResponse", "", (0, _ramda.propEq)("deleteOriginal", true));
 
-var ReqBody = _sanctuaryDef2.default.NullaryType("DoorayGiphy/ReqBody", "", (0, _ramda.allPass)([(0, _ramda.has)('channelId'), (0, _ramda.has)('responseUrl'), (0, _ramda.has)('command'), (0, _ramda.has)('text')]));
+var ReqBody = _sanctuaryDef2.default.NullaryType("DoorayGiphy/ReqBody", "", (0, _ramda.allPass)([(0, _ramda.has)('responseUrl'), (0, _ramda.has)('command'), (0, _ramda.has)('text')]));
 
 var def = exports.def = _hmDef2.default.create({
     checkTypes: true,

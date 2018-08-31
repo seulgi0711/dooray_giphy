@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.wrapValuesWithArray = exports.liftA3 = exports.liftA2 = exports.logTap = exports.wrapWithArray = exports.wrapWithObject = undefined;
+exports.rename = exports.mapIndexed = exports.wrapValuesWithArray = exports.liftA3 = exports.liftA2 = exports.logTap = exports.wrapWithArray = exports.wrapWithObject = undefined;
 
 var _ramda = require("ramda");
 
@@ -37,4 +37,13 @@ var wrapValuesWithArray = exports.wrapValuesWithArray = function wrapValuesWithA
 
     return [].concat(values);
 };
+
+var mapIndexed = exports.mapIndexed = (0, _ramda.addIndex)(_ramda.map);
+
+var rename = exports.rename = (0, _ramda.curry)(function (keysMap, obj) {
+    return (0, _ramda.reduce)(function (acc, key) {
+        acc[keysMap[key] || key] = obj[key];
+        return acc;
+    }, {}, (0, _ramda.keys)(obj));
+});
 //# sourceMappingURL=fnUtil.js.map

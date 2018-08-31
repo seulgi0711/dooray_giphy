@@ -39,7 +39,6 @@ app.get("/", function (req, res) {
 
 app.post("/giphy", function (req, res) {
     (0, _commandHandler2.default)(req).value(function (result) {
-        console.log(result);
         return res.send(result);
     });
 });

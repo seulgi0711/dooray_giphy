@@ -1,58 +1,55 @@
 import Future from "fluture";
 import { parseInt } from "lodash";
-import { cond, converge, evolve, juxt, map, mergeAll, pick, pipe, prop, propOr, T, take } from "ramda";
+import { cond, converge, dissoc, evolve, head, identity, map, pick, pipe, prop, slice, T, update } from "ramda";
+import { searchOneImage } from "../giphySearcher";
 import requester from "../requester/requester";
 import { def } from "../types/types";
-import { isSearchButton, isSendButton } from "../utils/actionUtil";
+import { getActionValue, isSearchButton, isSendButton } from "../utils/actionUtil";
+import { logTap, rename } from "../utils/fnUtil";
 import { extractOffset, getSearchKeyword } from "../utils/requestUtil";
-import {
-    createActions,
-    createOriginImageAttachment,
-    createInChannelResponse,
-    createKeywordText,
-    createReplaceResponse,
-    mergeActionAndImageAttachment
-} from "../utils/responseUtil";
+import { createInChannelResponse, createOriginImageAttachment, createReplaceResponse } from "../utils/responseUtil";
 
+export const removeActions = def(
+    "removeActions :: Object -> Object",
+    dissoc("actions")
+);
+
+export const convertThumbToImageUrl = def(
+    "convertThumbToImageUrl :: Object -> Object",
+    rename({ thumbUrl: "imageUrl" })
+);
+
+// prettier-ignore
+export const pickAttachmentForSend = def(
+    'pickAttachmentForSend :: Number -> [Object] -> [Object]',
+    (targetImageIndex, attachments) => {
+        return pipe(
+            slice(targetImageIndex, targetImageIndex + 1),
+            converge(update(0), [pipe(head, removeActions, convertThumbToImageUrl), identity])
+        )(attachments);
+    }
+);
+
+// prettier-ignore
 export const createSendResult = def(
-    "createSendResult :: Object -> Future Object Object",
+    "createSendResult :: ReqBody -> Future Object Object",
     pipe(
         prop("originalMessage"),
         pick(["text", "attachments"]),
-        evolve({ attachments: take(1) }),
+        evolve({ attachments: pickAttachmentForSend(parseInt(getActionValue(reqBody))) }),
+        logTap('attachments'),
         createInChannelResponse,
         createReplaceResponse,
         Future.of
     )
 );
 
+// prettier-ignore
 export const search = def(
     "search :: Object -> Future Object Object",
     pipe(
         converge(requester.Giphy.searchWithOffset, [getSearchKeyword, extractOffset]),
         map(createOriginImageAttachment)
-    )
-);
-
-export const mergeSearchAttachments = def(
-    "mergeSearchAttachments :: Future Object Object -> Object -> Future Object Object",
-    (searchResult, actionsAttachments) => {
-        return searchResult.map(mergeActionAndImageAttachment(actionsAttachments));
-    }
-);
-
-export const createSearchAttachments = def(
-    "createSearchAttachments :: Object -> Future Object Object",
-    converge(mergeSearchAttachments, [search, createActions])
-);
-
-// prettier-ignore
-export const createSearchResult = def(
-    "createSearchResult :: Object -> Future Object Object",
-    pipe(
-        juxt([createKeywordText, createSearchAttachments]),
-        Future.parallel(Infinity),
-        map(mergeAll)
     )
 );
 
@@ -63,7 +60,7 @@ const reqHandler = def(
         prop("body"),
         cond([
             [isSendButton, createSendResult],
-            [isSearchButton, createSearchResult],
+            [isSearchButton, searchOneImage],
             [T, Future.of({ text: 'nono' })]
         ]),
     )

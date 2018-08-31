@@ -1,6 +1,7 @@
 import { isEmpty, parseInt } from "lodash";
 import { curry, head, ifElse, map, match, max, min, nth, pipe, prop, propOr, split, test, trim } from "ramda";
 import { Maybe } from 'ramda-fantasy';
+import { BUTTON_TYPE } from '../constant';
 import { def } from "../types/types";
 import { logTap } from './fnUtil';
 
@@ -25,7 +26,7 @@ export const getOriginalUrl = def(
 );
 
 // prettier-ignore
-export const getFixedHeightSmallUrl = def(
+export const getFixedSmallUrl = def(
     "getOriginalUrl :: Object -> String",
     getImageUrl('fixed_height_small')
 );
@@ -60,4 +61,9 @@ export const extractMultiCount = def(
 export const extractOffset = def(
     "extractOffset :: ReqBody -> Number",
     pipe(propOr("0", "actionValue"), parseInt)
+);
+
+export const getActionName = def(
+    'getActionName :: ReqBody -> String',
+    propOr(BUTTON_TYPE.NEXT, 'actionName')
 );
