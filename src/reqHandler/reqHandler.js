@@ -33,15 +33,17 @@ export const pickAttachmentForSend = def(
 // prettier-ignore
 export const createSendResult = def(
     "createSendResult :: ReqBody -> Future Object Object",
-    pipe(
-        prop("originalMessage"),
-        pick(["text", "attachments"]),
-        evolve({ attachments: pickAttachmentForSend(parseInt(getActionValue(reqBody))) }),
-        logTap('attachments'),
-        createInChannelResponse,
-        createReplaceResponse,
-        Future.of
-    )
+    (reqBody) => {
+        return pipe(
+            prop("originalMessage"),
+            pick(["text", "attachments"]),
+            evolve({ attachments: pickAttachmentForSend(parseInt(getActionValue(reqBody))) }),
+            logTap('attachments'),
+            createInChannelResponse,
+            createReplaceResponse,
+            Future.of
+        )(reqBody);
+    }
 );
 
 // prettier-ignore
