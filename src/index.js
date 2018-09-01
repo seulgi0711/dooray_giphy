@@ -4,7 +4,6 @@ import { cond, equals, T } from 'ramda';
 import commandHandler from "./commandHandler/commandHandler";
 import { createNoResultResponse } from "./giphySearcher";
 import reqHandler from "./reqHandler/reqHandler";
-import { logTap } from './utils/fnUtil';
 
 const app = express();
 

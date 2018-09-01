@@ -29,6 +29,17 @@ const Giphy = {
     }
 };
 
+const Dooray = {
+    openModal: ({channelId, token}) => {
+      return Future((rej, res) => {
+          axios.post(`https://nhnent.dooray.com/messenger/api//channels/${channelId}/dialogs`, {
+
+          }, {headers: {token}})
+      });
+    }
+}
+
 export default {
-    Giphy
+    Giphy,
+    Dooray
 };

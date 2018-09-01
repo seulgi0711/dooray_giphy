@@ -18,7 +18,7 @@ import {
     prop
 } from 'ramda';
 import { Either, Maybe } from 'ramda-fantasy';
-import { BUTTON_TYPE } from './constant';
+import { ACTION_TYPE, BUTTON_TYPE } from './constant';
 import requester from './requester/requester';
 import { def } from './types/types';
 import { logTap, mapIndexed } from './utils/fnUtil';
@@ -37,6 +37,13 @@ import {
     createSendAction,
     createThumbImageAttachment
 } from './utils/responseUtil';
+
+const searchWithModalButton = {
+    name: BUTTON_TYPE.SEARCH_MODAL,
+    text: "검색하기",
+    type: ACTION_TYPE.BUTTON,
+    value: 'search_modal'
+};
 
 // prettier-ignore
 const searchGiphyByReqBody = def(
@@ -160,7 +167,8 @@ export const createNoKeywordSearchAttachments = def(
             map(createOriginImageAttachment),
             map(merge(__, {
                 title: '\'/giphy typing\'를 입력한 결과입니다.',
-                text: helpDescription
+                text: helpDescription,
+                actions: [searchWithModalButton]
             })),
             map(of),
             map(objOf('attachments'))

@@ -4,7 +4,7 @@ import { ACTION_TYPE, BUTTON_TYPE } from "../constant";
 import { def } from "../types/types";
 import { isNextButton } from "./actionUtil";
 import { logTap, wrapWithObject } from "./fnUtil";
-import { getFixedSmallUrl, getOriginalUrl, getSearchKeyword } from "./requestUtil";
+import { getOriginalUrl, getSearchKeyword } from "./requestUtil";
 
 export const createPrevAction = def(
     "createPrevAction :: Number -> Object",
@@ -109,3 +109,23 @@ export const createSendAction = def(
         type: ACTION_TYPE.BUTTON
     })
 );
+
+export const createSearchModal = def(
+    'createSearchModal :: String -> Object',
+    (memberId) => {
+      return {
+          callbackId: memberId,
+          title: 'Giphy 검색하기',
+          submitLabel: '검색',
+          elements: [
+              {
+                  type: 'input',
+                  label: '키워드',
+                  name: 'keyword',
+                  value: '',
+                  placeholder: '검색어를 입력해 주세요.'
+              }
+          ]
+      };
+    }
+)
