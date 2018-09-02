@@ -1,6 +1,6 @@
 # Giphy Slash Command for Dooray! Messenger
 
-![Slack](/../feature/add_readme/images/giphy.png "Dooray! Giphy")
+![Dooray! Giphy](/../add_readme/images/giphy.png "Dooray! Giphy")
 
 ## 사용법
 
