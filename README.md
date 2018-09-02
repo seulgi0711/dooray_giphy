@@ -1,8 +1,9 @@
 # Giphy Slash Command for Dooray! Messenger
 
-## Dooray! Messenger
-![Dooray! Messenger](/../develop/images/dooray.png "Dooray! Messenger")
+![Slack](/../feature/add_readme/images/giphy.png "Dooray! Giphy")
 
-## Slack
-![Slack](/../develop/images/slack.png "Slack")
+## 사용법
 
+1. 입력창을 통한 검색
+
+2. 다이얼로그를 통한 검색
