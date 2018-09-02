@@ -22,6 +22,11 @@ export const isSearchButton = def(
     either(isNextButton, isPrevButton)
 );
 
+export const isSearchModalButton = def(
+    'isSearchButton :: Object -> Boolean',
+    propEq('actionName', BUTTON_TYPE.SEARCH_MODAL)
+);
+
 export const getActionValue = def(
     'getActionValue :: ReqBody -> String',
     prop('actionValue')

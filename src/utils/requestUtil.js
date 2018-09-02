@@ -1,5 +1,25 @@
-import { isEmpty, parseInt } from "lodash";
-import { curry, head, ifElse, map, match, max, min, nth, pipe, prop, propOr, split, test, trim } from "ramda";
+import { isEmpty, isString, parseInt } from "lodash";
+import {
+    always,
+    curry,
+    dec,
+    either,
+    head,
+    ifElse,
+    length,
+    match,
+    max,
+    min,
+    nth,
+    path,
+    pathOr,
+    pipe,
+    prop,
+    propEq,
+    propOr,
+    split,
+    trim
+} from "ramda";
 import { Maybe } from 'ramda-fantasy';
 import { BUTTON_TYPE } from '../constant';
 import { def } from "../types/types";
@@ -32,29 +52,67 @@ export const getFixedSmallUrl = def(
 );
 
 // prettier-ignore
-export const isMultiImage = def(
-    'isMultiImage :: ReqBody -> Boolean',
-    pipe(prop('text'), test(/--multi=/))
+export const isDialogSubmission = def(
+    'isDialogSubmission :: ReqBody -> Boolean',
+    propEq('type', 'dialog_submission')
 );
+
+const extractFromOriginalText = def(
+    'extractFromOriginalText :: ReqBody -> String',
+    pipe(
+        pathOr('', ['originalMessage', 'text']),
+        match(/'(.*)'/),
+        ifElse(isEmpty, always(''), nth(1)),
+        logTap('match')
+        // logTap('match'),
+        // nth(1)
+    )
+)
 
 // prettier-ignore
 export const getSearchKeyword = def(
     'getSearchKeyword :: ReqBody -> String',
-    pipe(prop("text"), trim, split('--'), head, split(' '), head)
+    pipe(
+        ifElse(isDialogSubmission,
+            path(['submission', 'keyword']),
+            either(prop("text"), extractFromOriginalText)
+        ),
+        trim,
+        split('--'),
+        head,
+        split(' '),
+        head
+    )
+);
+
+// prettier-ignore
+export const getOriginalAttachmentsCount = def(
+    'getOriginalAttachmentsCount :: ReqBody -> Number',
+    pipe(pathOr([{}], ['originalMessage', 'attachments']), length)
+);
+
+export const getMultiCountFromOriginalAttachments = def(
+    'getMultiCountFromOriginalAttachments :: ReqBody -> Number',
+    pipe(getOriginalAttachmentsCount, dec)
 );
 
 // prettier-ignore
 export const extractMultiCount = def(
     'extractMultiCount :: ReqBody -> Number',
-    pipe(
-        prop('text'),
-        match(/--multi=(\d*)/),
-        ifElse(isEmpty, Maybe.Nothing, Maybe.Just),
-        map(nth(1)),
-        map(min(5)),
-        map(max(1)),
-        maybe(1, parseInt)
-    )
+    (reqBody) => {
+        return pipe(
+            ifElse(isDialogSubmission,
+                path(['submission', 'count']),
+                pipe(propOr('', 'text'), match(/--multi=(\d*)/), nth(1))
+            ),
+            ifElse(isEmpty,
+                () => getMultiCountFromOriginalAttachments(reqBody),
+                (number) => parseInt(number)
+            ),
+            min(5),
+            max(1)
+        )(reqBody);
+    }
 );
 
 // prettier-ignore
@@ -73,4 +131,28 @@ export const validateKeyword = def(
     (keyword) => {
         return isEmpty(keyword) ? Maybe.Nothing() : Maybe.Just(keyword);
     }
-)
+);
+
+// prettier-ignore
+export const extractChannelId = def(
+    'extractChannelId :: ReqBody -> String',
+    either(prop('channelId'), path(['channel', 'id']))
+);
+
+// prettier-ignore
+export const extractUserId = def(
+    'extractUserId :: ReqBody -> String',
+    either(prop('userId'), path(['user', 'id']))
+);
+
+// prettier-ignore
+export const extractTriggerId = def(
+    'extractTriggerId :: ReqBody -> String',
+    prop('triggerId')
+);
+
+// prettier-ignore
+export const extractCommandToken = def(
+    'extractCommandToken :: ReqBody -> String',
+    prop('cmdToken')
+);

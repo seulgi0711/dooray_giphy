@@ -1,6 +1,6 @@
 import axios from "axios";
 import Future from 'fluture';
-import { path, pipe } from 'ramda';
+import { def } from '../types/types';
 
 const search = (q, limit = 1, offset = 0) => {
     return Future((rej, res) => {
@@ -29,6 +29,26 @@ const Giphy = {
     }
 };
 
+const Dooray = {
+    openModal: ({ channelId, token = '', triggerId, dialog }) => {
+        return Future((rej, res) => {
+            axios.post(`https://nhnent.dooray.com/messenger/api//channels/${channelId}/dialogs`,
+                { triggerId, dialog },
+                { headers: { token } }
+            ).then(res).catch(rej);
+        });
+    },
+    webHook: def(
+        'webHook :: String -> Object -> Future Object Object',
+        (url, body) => {
+            return Future((rej, res) => {
+                axios.post(url, body).then(res).catch(rej);
+            });
+        }
+    )
+}
+
 export default {
-    Giphy
+    Giphy,
+    Dooray
 };
