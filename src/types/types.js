@@ -5,6 +5,10 @@ import $ from "sanctuary-def";
 import $type from "sanctuary-type-identifiers";
 import { BUTTON_TYPE, RESPONSE_TYPE } from "../constant";
 
+const hasType = curry((type, x) => {
+    return type.validate(x).isRight;
+});
+
 const checkTypeId = curry((expectedType, obj) => {
     const eq = fn =>
         compose(
@@ -49,7 +53,7 @@ const ReplaceResponse = $.NullaryType(
 const ReqBody = $.NullaryType(
     "DoorayGiphy/ReqBody",
     "",
-    allPass([has('responseUrl'), has('command'), has('text')])
+    allPass([has('responseUrl')])
 );
 
 const maybeTypeId = 'ramda-fantasy/Maybe';

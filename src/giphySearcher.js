@@ -3,6 +3,7 @@ import {
     __,
     always,
     append,
+    chain,
     converge,
     equals,
     head,
@@ -13,7 +14,6 @@ import {
     mergeAll,
     objOf,
     of,
-    pathEq,
     pipe,
     prop
 } from 'ramda';
@@ -21,8 +21,9 @@ import { Either, Maybe } from 'ramda-fantasy';
 import { ACTION_TYPE, BUTTON_TYPE } from './constant';
 import requester from './requester/requester';
 import { def } from './types/types';
-import { logTap, mapIndexed } from './utils/fnUtil';
+import { mapIndexed } from './utils/fnUtil';
 import {
+    extractChannelId,
     extractMultiCount,
     extractOffset,
     getActionName,
@@ -31,7 +32,8 @@ import {
 } from './utils/requestUtil';
 import {
     createKeywordText,
-    createNextActions, createNoResultKeywordText,
+    createNextActions,
+    createNoResultKeywordText,
     createOriginImageAttachment,
     createPrevActions,
     createSendAction,
@@ -49,7 +51,7 @@ const searchWithModalButton = {
 const searchGiphyByReqBody = def(
     'searchGiphyByReqBody :: ReqBody -> Future Object Object',
     pipe(
-        converge(requester.Giphy.search, [getSearchKeyword, extractMultiCount, extractOffset]),
+        converge(requester.Giphy.search, [getSearchKeyword, pipe(extractMultiCount), extractOffset]),
         map(prop('data'))
     )
 );
@@ -153,7 +155,7 @@ export const validateKeywordFromReq = def(
 
 const helpDescription = `/giphy 키워드 -> 키워드에 해당하는 이미지를 검색합니다.
 
-/giphy 키워드 --multi=n -> 이미지를 n개씩 검색합니다. (1 <= n <=5 )
+/giphy 키워드 --multi=n -> 이미지를 n개씩 보여줍니다. (1 <= n <=5 )
 
 `;
 
@@ -196,6 +198,24 @@ export const searchImage = def(
         map(mergeAll)
     )
 );
+
+export const searchImageFromDialog = def(
+    'searchImageFromDialog :: ReqBody -> Future Null Object',
+    (reqBody) => {
+        pipe(
+            juxt([
+                pipe(createKeywordText, Future.of),
+                pipe(extractChannelId, objOf('channelId'), Future.of),
+                createSearchAttachments
+            ]),
+            Future.parallel(Infinity),
+            map(mergeAll),
+            chain(requester.Dooray.webHook(reqBody.responseUrl)),
+            Future.value(always)
+        )(reqBody);
+        return Future.of({});
+    }
+)
 
 export const createNoResultResponse = def(
     'createNoResultResponse :: Object -> Future Object Object',

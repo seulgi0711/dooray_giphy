@@ -14,3 +14,5 @@ export const RESPONSE_TYPE = {
     IN_CHANNEL: "inChannel",
     EPHEMERAL: "ephemeral"
 };
+
+export const Unit = undefined;
