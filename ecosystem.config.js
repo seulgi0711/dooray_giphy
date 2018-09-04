@@ -19,12 +19,12 @@ module.exports = {
 
     deploy: {
         production: {
-            user: 'ubuntu',
-            host: 'ec2-52-79-241-73.ap-northeast-2.compute.amazonaws.com',
+            user: 'ne11243',
+            host: 'doocon.nhnent.com',
             ref: 'origin/develop',
             repo: 'https://github.com/seulgi0711/dooray_giphy.git',
-            path: '/home/ubuntu/apps/test',
-            'post-deploy': 'npm install && npm run build && pm2 reload ecosystem.config.js --env production'
+            path: '/home1/ne11243/test',
+            'post-deploy': 'npm install && npm run build'
         }
     }
 };
