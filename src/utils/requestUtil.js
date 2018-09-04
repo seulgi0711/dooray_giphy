@@ -70,11 +70,11 @@ const extractFromOriginalText = def(
 )
 
 // prettier-ignore
-export const getSearchKeyword = def(
-    'getSearchKeyword :: ReqBody -> String',
+export const extractSearchKeyword = def(
+    'extractSearchKeyword :: ReqBody -> String',
     pipe(
         ifElse(isDialogSubmission,
-            path(['submission', 'keyword']),
+            path(['submission', 'Keyword']),
             either(prop("text"), extractFromOriginalText)
         ),
         trim,
@@ -144,6 +144,18 @@ export const extractUserId = def(
     'extractUserId :: ReqBody -> String',
     either(prop('userId'), path(['user', 'id']))
 );
+
+// prettier-ignore
+export const extractTenantId = def(
+    'extractTenantId :: ReqBody -> String',
+    either(prop('tenantId'), path(['tenant', 'id']))
+);
+
+// prettier-ignore
+export const extractKeyword = def(
+    'extractKeyword :: ReqBody -> String',
+    prop('text')
+)
 
 // prettier-ignore
 export const extractTriggerId = def(

@@ -16,3 +16,9 @@ export const RESPONSE_TYPE = {
 };
 
 export const Unit = undefined;
+
+export const helpDescription = `/giphy keyword -> Search for images that match your keywords.
+
+/giphy keyword --multi=n -> Show n images. (1 <= n <=5 )
+
+`;

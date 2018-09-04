@@ -1,8 +1,8 @@
-import { getSearchKeyword } from './requestUtil';
+import { extractSearchKeyword } from './requestUtil';
 
-describe('getSearchKeyword(reqBody)', () => {
+describe('extractSearchKeyword(reqBody)', () => {
     test('asdasd', () => {
-        expect(getSearchKeyword({text: '', responseUrl: '', command: ''})).toEqual('');
-        expect(getSearchKeyword({text: '--multi=5', responseUrl: '', command: ''})).toEqual('');
+        expect(extractSearchKeyword({text: '', responseUrl: '', command: ''})).toEqual('');
+        expect(extractSearchKeyword({text: '--multi=5', responseUrl: '', command: ''})).toEqual('');
     });
 });

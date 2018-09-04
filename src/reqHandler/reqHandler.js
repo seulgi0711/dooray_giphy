@@ -9,7 +9,7 @@ import {
     head,
     identity,
     juxt,
-    map,
+    map, merge,
     mergeAll,
     objOf,
     path,
@@ -31,13 +31,13 @@ import {
     extractOffset,
     extractTriggerId,
     extractUserId,
-    getSearchKeyword, isDialogSubmission
+    extractSearchKeyword, isDialogSubmission
 } from "../utils/requestUtil";
 import {
     createInChannelResponse,
     createOriginImageAttachment,
     createReplaceResponse,
-    createSearchModal
+    createSearchModal, createSearchResultText
 } from "../utils/responseUtil";
 
 export const removeActions = def(
@@ -67,8 +67,11 @@ export const createSendResult = def(
     (reqBody) => {
         return pipe(
             prop("originalMessage"),
-            pick(["text", "attachments"]),
-            evolve({ attachments: pickAttachmentForSend(parseInt(getActionValue(reqBody))) }),
+            pick(["attachments"]),
+            evolve({
+                attachments: pickAttachmentForSend(parseInt(getActionValue(reqBody)))
+            }),
+            merge(createSearchResultText(reqBody)),
             createInChannelResponse,
             createReplaceResponse,
             Future.of
@@ -101,7 +104,7 @@ export const createSearchModalResult = def(
 export const search = def(
     "search :: Object -> Future Object Object",
     pipe(
-        converge(requester.Giphy.searchWithOffset, [getSearchKeyword, extractOffset]),
+        converge(requester.Giphy.searchWithOffset, [extractSearchKeyword, extractOffset]),
         map(createOriginImageAttachment)
     )
 );
