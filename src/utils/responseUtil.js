@@ -101,7 +101,7 @@ export const createSearchResultText = def(
     reqBody => {
         return pipe(
             createSenderMention,
-            concat(__, ' sent a image about '),
+            concat(__, ' sent an image of the '),
             concat(__, extractSearchKeyword(reqBody)),
             objOf('text')
         )(reqBody);
