@@ -74,7 +74,7 @@ export const extractSearchKeyword = def(
     'extractSearchKeyword :: ReqBody -> String',
     pipe(
         ifElse(isDialogSubmission,
-            path(['submission', 'Keyword']),
+            path(['submission', 'keyword']),
             either(prop("text"), extractFromOriginalText)
         ),
         trim,

@@ -136,7 +136,7 @@ export const createSearchModal = def(
             elements: [
                 {
                     type: "input",
-                    label: "keyword",
+                    label: "Keyword",
                     name: "keyword",
                     value: "",
                     placeholder: "Please enter keyword."
