@@ -73,10 +73,12 @@ const extractFromOriginalText = def(
 export const extractSearchKeyword = def(
     'extractSearchKeyword :: ReqBody -> String',
     pipe(
+        logTap('@@@@'),
         ifElse(isDialogSubmission,
             path(['submission', 'keyword']),
-            either(prop("text"), extractFromOriginalText)
+            ifElse(pipe(prop('text'), isEmpty), extractFromOriginalText, prop('text')),
         ),
+        logTap('keyword'),
         trim,
         split('--'),
         head,

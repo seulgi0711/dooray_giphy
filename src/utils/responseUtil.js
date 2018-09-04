@@ -85,7 +85,8 @@ export const createKeywordText = def(
     "createKeywordText :: ReqBody -> Object",
     pipe(
         extractSearchKeyword,
-        concat('Search results for '),
+        concat('Search results for \''),
+        concat(__, '\''),
         objOf("text")
     )
 );
@@ -101,8 +102,7 @@ export const createSearchResultText = def(
     reqBody => {
         return pipe(
             createSenderMention,
-            concat(__, ' sent an image of the '),
-            concat(__, extractSearchKeyword(reqBody)),
+            concat(__, ' sent an image.'),
             objOf('text')
         )(reqBody);
     }
