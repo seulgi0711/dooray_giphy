@@ -31,14 +31,17 @@ app.get("/monitor/l7check", (req, res) => {
   return res.status(200).send("OK");
 });
 
-// prettier-ignore
 app.post("/giphy", (req, res) => {
-    commandHandler(req).fork(cond([
-            [equals('no result'), () => createNoResultResponse(req.body).value(result => res.send(result))],
-            [T, console.error]
-        ]),
-        result => res.send(result)
-    );
+  commandHandler(req).fork(
+    cond([
+      [
+        equals("no result"),
+        () => createNoResultResponse(req.body).value(result => res.send(result))
+      ],
+      [T, console.error]
+    ]),
+    result => res.send(result)
+  );
 });
 
 app.post("/req", (req, res) => {

@@ -1,33 +1,23 @@
 import { either, prop, propEq } from "ramda";
 import { BUTTON_TYPE } from "../constant";
-import { def } from "../types/types";
 
-export const isSendButton = def(
-    "isSendButton :: Object -> Boolean",
-    propEq("actionName", BUTTON_TYPE.SEND)
+// "isSendButton :: Object -> Boolean",
+export const isSendButton = propEq("actionName", BUTTON_TYPE.SEND);
+
+// "isNextButton :: Object -> Boolean",
+export const isNextButton = propEq("actionName", BUTTON_TYPE.NEXT);
+
+// "isSearchButton :: Object -> Boolean",
+export const isPrevButton = propEq("actionName", BUTTON_TYPE.PREV);
+
+// "isSearchButton :: Object -> Boolean",
+export const isSearchButton = either(isNextButton, isPrevButton);
+
+// "isSearchButton :: Object -> Boolean",
+export const isSearchModalButton = propEq(
+  "actionName",
+  BUTTON_TYPE.SEARCH_MODAL
 );
 
-export const isNextButton = def(
-    "isNextButton :: Object -> Boolean",
-    propEq("actionName", BUTTON_TYPE.NEXT)
-);
-
-export const isPrevButton = def(
-    "isSearchButton :: Object -> Boolean",
-    propEq("actionName", BUTTON_TYPE.PREV)
-);
-
-export const isSearchButton = def(
-    'isSearchButton :: Object -> Boolean',
-    either(isNextButton, isPrevButton)
-);
-
-export const isSearchModalButton = def(
-    'isSearchButton :: Object -> Boolean',
-    propEq('actionName', BUTTON_TYPE.SEARCH_MODAL)
-);
-
-export const getActionValue = def(
-    'getActionValue :: ReqBody -> String',
-    prop('actionValue')
-);
+// "getActionValue :: ReqBody -> String",
+export const getActionValue = prop("actionValue");

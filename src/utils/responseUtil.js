@@ -1,160 +1,183 @@
-import { isEmpty, parseInt } from "lodash";
-import { __, assoc, concat, converge, dec, flip, gt, ifElse, inc, juxt, merge, objOf, pipe, reject, when } from "ramda";
+import { isEmpty } from "lodash";
+import {
+  assoc,
+  concat,
+  converge,
+  curry,
+  dec,
+  gt,
+  ifElse,
+  inc,
+  juxt,
+  merge,
+  objOf,
+  pipe,
+  reject,
+  when,
+  __
+} from "ramda";
 import { ACTION_TYPE, BUTTON_TYPE } from "../constant";
-import { def } from "../types/types";
 import { isNextButton } from "./actionUtil";
-import { logTap, wrapWithObject } from "./fnUtil";
-import { extractSearchKeyword, extractTenantId, extractUserId, getOriginalUrl } from "./requestUtil";
+import { wrapWithObject } from "./fnUtil";
+import {
+  extractSearchKeyword,
+  extractTenantId,
+  extractUserId,
+  getOriginalUrl
+} from "./requestUtil";
 
-export const createPrevAction = def(
-    "createPrevAction :: Number -> Object",
-    assoc("value", __, {
-        name: BUTTON_TYPE.PREV,
-        text: "Prev",
-        type: ACTION_TYPE.BUTTON
-    })
-);
+// "createPrevAction :: Number -> Object",
+export const createPrevAction = assoc("value", __, {
+  name: BUTTON_TYPE.PREV,
+  text: "Prev",
+  type: ACTION_TYPE.BUTTON
+});
 
-export const createNextAction = def(
-    "createNextAction :: Number -> Object",
-    assoc("value", __, {
-        name: BUTTON_TYPE.NEXT,
-        text: "Next",
-        type: ACTION_TYPE.BUTTON
-    })
-);
+// "createNextAction :: Number -> Object",
+export const createNextAction = assoc("value", __, {
+  name: BUTTON_TYPE.NEXT,
+  text: "Next",
+  type: ACTION_TYPE.BUTTON
+});
 
-// prettier-ignore
-export const createNextActions = def(
-    "createNextActions :: Number -> Object",
+//  "createNextActions :: Number -> Object",
+export const createNextActions = pipe(
+  juxt([
+    when(
+      gt(__, 0),
+      pipe(
+        dec,
+        createPrevAction
+      )
+    ),
     pipe(
-        logTap('offset'),
-        juxt([when(gt(__, 0), pipe(dec, createPrevAction)), pipe(inc, createNextAction)]),
-        reject(isEmpty),
-        objOf("actions")
+      inc,
+      createNextAction
     )
+  ]),
+  reject(isEmpty),
+  objOf("actions")
 );
 
-// prettier-ignore
-export const createPrevActions = def(
-    "createPrevActions :: Number -> Object",
+//  "createPrevActions :: Number -> Object",
+export const createPrevActions = pipe(
+  juxt([
+    when(
+      gt(__, 0),
+      pipe(
+        dec,
+        createPrevAction
+      )
+    ),
     pipe(
-        juxt([when(gt(__, 0), pipe(dec, createPrevAction)), pipe(inc, createNextAction)]),
-        reject(isEmpty),
-        wrapWithObject("actions")
+      inc,
+      createNextAction
     )
+  ]),
+  reject(isEmpty),
+  wrapWithObject("actions")
 );
 
-export const createActions = def(
-    "createActions :: ReqBody -> Object",
-    ifElse(isNextButton, createNextActions, createPrevActions)
+// "createActions :: ReqBody -> Object",
+export const createActions = ifElse(
+  isNextButton,
+  createNextActions,
+  createPrevActions
 );
 
-export const createInChannelResponse = def(
-    "createInChannelResponse :: Object -> InChannelResponse",
-    merge(__, { responseType: "inChannel" })
+//  "createInChannelResponse :: Object -> InChannelResponse",
+export const createInChannelResponse = merge(__, {
+  responseType: "inChannel"
+});
+
+//  "createReplaceResponse :: Object -> ReplaceResponse",
+export const createReplaceResponse = merge(__, { deleteOriginal: true });
+
+// "mergeActionAndImageAttachment :: Object -> Object -> Object",
+export const mergeActionAndImageAttachment = curry(
+  (actionsAttachment, imageAttachment) => {
+    return {
+      attachments: [imageAttachment, actionsAttachment]
+    };
+  }
 );
 
-export const createReplaceResponse = def(
-    "createReplaceResponse :: Object -> ReplaceResponse",
-    merge(__, { deleteOriginal: true })
+// "createOriginImageAttachment :: Object -> Object",
+export const createOriginImageAttachment = pipe(
+  getOriginalUrl,
+  objOf("imageUrl")
 );
 
-export const mergeActionAndImageAttachment = def(
-    "mergeActionAndImageAttachment :: Object -> Object -> Object",
-    (actionsAttachment, imageAttachment) => {
-        return {
-            attachments: [imageAttachment, actionsAttachment]
-        };
-    }
+//  "createOriginImageAttachment :: Object -> Object",
+export const createThumbImageAttachment = pipe(
+  getOriginalUrl,
+  objOf("thumbUrl")
 );
 
-// prettier-ignore
-export const createOriginImageAttachment = def(
-    "createOriginImageAttachment :: Object -> Object",
-    pipe(getOriginalUrl, objOf("imageUrl"))
+//  "createKeywordText :: ReqBody -> Object",
+export const createKeywordText = pipe(
+  extractSearchKeyword,
+  concat("Search results for '"),
+  concat(__, "'"),
+  objOf("text")
 );
 
-// prettier-ignore
-export const createThumbImageAttachment = def(
-    "createOriginImageAttachment :: Object -> Object",
-    pipe(getOriginalUrl, objOf("thumbUrl"))
+// "createSenderMention :: ReqBody -> String",
+export const createSenderMention = converge(
+  (tenantId, userId) => `(dooray://${tenantId}/members/${userId} "member")`,
+  [extractTenantId, extractUserId]
 );
 
-export const createKeywordText = def(
-    "createKeywordText :: ReqBody -> Object",
-    pipe(
-        extractSearchKeyword,
-        concat('Search results for \''),
-        concat(__, '\''),
-        objOf("text")
-    )
+// "createSearchResultText :: ReqBody -> Object",
+export const createSearchResultText = reqBody => {
+  return pipe(
+    createSenderMention,
+    concat(__, " sent an image."),
+    objOf("text")
+  )(reqBody);
+};
+
+// "createNoResultKeywordText :: Object -> Object",
+export const createNoResultKeywordText = pipe(
+  extractSearchKeyword,
+  concat("No results found for "),
+  objOf("text")
 );
 
-// prettier-ignore
-export const createSenderMention = def(
-    'createSenderMention :: ReqBody -> String',
-    converge((tenantId, userId) => `(dooray://${tenantId}/members/${userId} "member")`, [extractTenantId, extractUserId])
-)
+// "createSendAction :: Number -> Object",
+export const createSendAction = assoc("value", __, {
+  name: BUTTON_TYPE.SEND,
+  text: "Send",
+  type: ACTION_TYPE.BUTTON
+});
 
-export const createSearchResultText = def(
-    "createSearchResultText :: ReqBody -> Object",
-    reqBody => {
-        return pipe(
-            createSenderMention,
-            concat(__, ' sent an image.'),
-            objOf('text')
-        )(reqBody);
-    }
-);
-
-export const createNoResultKeywordText = def(
-    "createNoResultKeywordText :: Object -> Object",
-    pipe(
-        extractSearchKeyword,
-        concat('No results found for '),
-        objOf("text")
-    )
-);
-
-export const createSendAction = def(
-    "createSendAction :: Number -> Object",
-    assoc("value", __, {
-        name: BUTTON_TYPE.SEND,
-        text: "Send",
-        type: ACTION_TYPE.BUTTON
-    })
-);
-
-export const createSearchModal = def(
-    "createSearchModal :: String -> Object",
-    memberId => {
-        return {
-            callbackId: memberId,
-            title: "Search Giphy",
-            submitLabel: "Search",
-            elements: [
-                {
-                    type: "input",
-                    label: "Keyword",
-                    name: "keyword",
-                    value: "",
-                    placeholder: "Please enter keyword."
-                },
-                {
-                    type: "select",
-                    label: "Number of images to show",
-                    name: "count",
-                    value: 1,
-                    options: [
-                        { value: "1", label: "1" },
-                        { value: "2", label: "2" },
-                        { value: "3", label: "3" },
-                        { value: "4", label: "4" },
-                        { value: "5", label: "5" }
-                    ]
-                }
-            ]
-        };
-    }
-);
+// "createSearchModal :: String -> Object",
+export const createSearchModal = memberId => {
+  return {
+    callbackId: memberId,
+    title: "Search Giphy",
+    submitLabel: "Search",
+    elements: [
+      {
+        type: "input",
+        label: "Keyword",
+        name: "keyword",
+        value: "",
+        placeholder: "Please enter keyword."
+      },
+      {
+        type: "select",
+        label: "Number of images to show",
+        name: "count",
+        value: 1,
+        options: [
+          { value: "1", label: "1" },
+          { value: "2", label: "2" },
+          { value: "3", label: "3" },
+          { value: "4", label: "4" },
+          { value: "5", label: "5" }
+        ]
+      }
+    ]
+  };
+};
