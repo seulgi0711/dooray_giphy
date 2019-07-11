@@ -1,9 +1,13 @@
 import Future from "fluture";
 import HMD from "hm-def";
-import { anyPass, compose, curry, equals, path, propEq, values } from "ramda";
+import { allPass, anyPass, compose, curry, equals, has, path, propEq, values } from "ramda";
 import $ from "sanctuary-def";
 import $type from "sanctuary-type-identifiers";
 import { BUTTON_TYPE, RESPONSE_TYPE } from "../constant";
+
+const hasType = curry((type, x) => {
+    return type.validate(x).isRight;
+});
 
 const checkTypeId = curry((expectedType, obj) => {
     const eq = fn =>
@@ -46,13 +50,40 @@ const ReplaceResponse = $.NullaryType(
     propEq("deleteOriginal", true)
 );
 
+const ReqBody = $.NullaryType(
+    "DoorayGiphy/ReqBody",
+    "",
+    allPass([has('responseUrl')])
+);
+
+const maybeTypeId = 'ramda-fantasy/Maybe';
+const eitherTypeId = 'ramda-fantasy/Either';
+
+const $Either = $.BinaryType(
+    eitherTypeId,
+    'https://github.com/ramda/ramda-fantasy/blob/master/docs/Either.md',
+    checkTypeId(eitherTypeId),
+    either => (either.isLeft ? [either.value] : []),
+    either => (either.isRight ? [either.value] : [])
+);
+
+const $Maybe = $.UnaryType(
+    maybeTypeId,
+    'https://github.com/ramda/ramda-fantasy/blob/master/docs/Maybe.md',
+    checkTypeId(maybeTypeId),
+    maybe => (maybe.isJust ? [maybe.value] : [])
+);
+
 export const def = HMD.create({
     checkTypes: true,
     env: $.env.concat([
+        $Either($.Unknown, $.Unknown),
         $Future($.Unknown, $.Unknown),
+        $Maybe($.Unknown),
         Button,
         ButtonType,
         InChannelResponse,
-        ReplaceResponse
+        ReplaceResponse,
+        ReqBody
     ])
 });

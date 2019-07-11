@@ -1,69 +1,111 @@
 import Future from "fluture";
 import { parseInt } from "lodash";
-import { cond, converge, evolve, juxt, map, mergeAll, pick, pipe, prop, propOr, T, take } from "ramda";
+import {
+    always,
+    cond,
+    converge,
+    dissoc,
+    evolve,
+    head,
+    identity,
+    juxt,
+    map, merge,
+    mergeAll,
+    objOf,
+    path,
+    pick,
+    pipe,
+    prop,
+    slice,
+    T,
+    tap,
+    update
+} from "ramda";
+import { searchImage, searchImageFromDialog } from "../giphySearcher";
 import requester from "../requester/requester";
 import { def } from "../types/types";
-import { isSearchButton, isSendButton } from "../utils/actionUtil";
+import { getActionValue, isSearchButton, isSearchModalButton, isSendButton } from "../utils/actionUtil";
+import { rename } from "../utils/fnUtil";
 import {
-    convertSearchIntoAttachments,
-    createActions,
-    createImageAttachment,
+    extractChannelId, extractCommandToken,
+    extractOffset,
+    extractTriggerId,
+    extractUserId,
+    extractSearchKeyword, isDialogSubmission
+} from "../utils/requestUtil";
+import {
     createInChannelResponse,
-    createKeywordText,
-    createReplaceResponse
+    createOriginImageAttachment,
+    createReplaceResponse,
+    createSearchModal, createSearchResultText
 } from "../utils/responseUtil";
 
-export const createSendResult = def(
-    "createSendResult :: Object -> Future Object Object",
-    pipe(
-        prop("originalMessage"),
-        pick(["text", "attachments"]),
-        evolve({ attachments: take(1) }),
-        createInChannelResponse,
-        createReplaceResponse,
-        Future.of
-    )
+export const removeActions = def(
+    "removeActions :: Object -> Object",
+    dissoc("actions")
 );
 
-export const extractKeyword = def(
-    "extractKeyword :: Object -> String",
-    propOr("", "text")
+export const convertThumbToImageUrl = def(
+    "convertThumbToImageUrl :: Object -> Object",
+    rename({ thumbUrl: "imageUrl" })
 );
 
-export const extractOffset = def(
-    "extractOffset :: Object -> Number",
-    pipe(
-        propOr("0", "actionValue"),
-        parseInt
-    )
-);
-
-export const search = def(
-    "search :: Object -> Future Object Object",
-    pipe(
-        converge(requester.Giphy.searchWithOffset, [extractKeyword, extractOffset]),
-        map(createImageAttachment)
-    )
-);
-
-export const mergeSearchAttachments = def(
-    "mergeSearchAttachments :: Future Object Object -> Object -> Future Object Object",
-    (searchResult, actionsAttachments) => {
-        return searchResult.map(convertSearchIntoAttachments(actionsAttachments));
+// prettier-ignore
+export const pickAttachmentForSend = def(
+    'pickAttachmentForSend :: Number -> [Object] -> [Object]',
+    (targetImageIndex, attachments) => {
+        return pipe(
+            slice(targetImageIndex, targetImageIndex + 1),
+            converge(update(0), [pipe(head, removeActions, convertThumbToImageUrl), identity])
+        )(attachments);
     }
 );
 
-export const createSearchAttachments = def(
-    "createSearchAttachments :: Object -> Future Object Object",
-    converge(mergeSearchAttachments, [search, createActions])
+// prettier-ignore
+export const createSendResult = def(
+    "createSendResult :: ReqBody -> Future Object Object",
+    (reqBody) => {
+        return pipe(
+            prop("originalMessage"),
+            pick(["attachments"]),
+            evolve({
+                attachments: pickAttachmentForSend(parseInt(getActionValue(reqBody)))
+            }),
+            merge(createSearchResultText(reqBody)),
+            createInChannelResponse,
+            createReplaceResponse,
+            Future.of
+        )(reqBody);
+    }
 );
 
-export const createSearchResult = def(
-    "createSearchResult :: Object -> Future Object Object",
+// prettier-ignore
+const callDialogOpenApi = def(
+    'callDialogOpenApi :: ReqBody -> Function',
     pipe(
-        juxt([createKeywordText, createSearchAttachments]),
-        Future.parallel(Infinity),
-        map(mergeAll)
+        juxt([
+            pipe(extractChannelId, objOf('channelId')),
+            pipe(extractCommandToken, objOf('token')),
+            pipe(extractTriggerId, objOf('triggerId')),
+            pipe(extractUserId, createSearchModal, objOf('dialog'))
+        ]),
+        mergeAll,
+        requester.Dooray.openModal,
+        Future.fork(console.error, always)
+    )
+);
+
+// prettier-ignore
+export const createSearchModalResult = def(
+    'createSearchModalResult :: ReqBody -> Future Object Object',
+    pipe(tap(callDialogOpenApi), path(['originalMessage', 'text']), objOf('text'), Future.of));
+
+// prettier-ignore
+export const search = def(
+    "search :: Object -> Future Object Object",
+    pipe(
+        converge(requester.Giphy.searchWithOffset, [extractSearchKeyword, extractOffset]),
+        map(createOriginImageAttachment)
     )
 );
 
@@ -74,7 +116,9 @@ const reqHandler = def(
         prop("body"),
         cond([
             [isSendButton, createSendResult],
-            [isSearchButton, createSearchResult],
+            [isSearchButton, searchImage],
+            [isSearchModalButton, createSearchModalResult],
+            [isDialogSubmission, searchImageFromDialog],
             [T, Future.of({ text: 'nono' })]
         ]),
     )

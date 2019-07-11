@@ -1,4 +1,4 @@
-import { curry } from "ramda";
+import { addIndex, reduce, keys, curry, map } from "ramda";
 
 export const wrapWithObject = curry((key, value) => {
     return {
@@ -29,3 +29,20 @@ export const liftA3 = curry((g, f1, f2, f3) => {
 export const wrapValuesWithArray = (...values) => {
     return [...values];
 };
+
+export const mapIndexed = addIndex(map);
+
+export const rename = curry((keysMap, obj) => {
+    return reduce(
+        (acc, key) => {
+            acc[keysMap[key] || key] = obj[key];
+            return acc;
+        },
+        {},
+        keys(obj)
+    );
+});
+
+export const mEither = curry((f, g, e) => {
+    return e.isLeft ? f(e.value) : g(e.value);
+});

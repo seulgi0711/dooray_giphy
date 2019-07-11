@@ -1,33 +1,54 @@
 import axios from "axios";
 import Future from 'fluture';
-import { head, path, pipe } from 'ramda';
+import { def } from '../types/types';
 
-const search = (q, offset) => {
-    console.log('q', q);
-    console.log('offset', offset);
+const search = (q, limit = 1, offset = 0) => {
     return Future((rej, res) => {
         axios.get("http://api.giphy.com/v1/gifs/search", {
             params: {
                 api_key: "8JyP74RbDTroHrzNyXt8zaAWkBeIe81l",
-                q,
-                limit: 1,
-                offset,
                 fmt: "json",
-                lang: "ko"
+                lang: "ko",
+                q,
+                limit,
+                offset
             }
-        }).then(pipe(path(['data', 'data']), head, res)).catch(rej);
+        }).then((result) => {
+            if (result.data.pagination.count === 0) {
+                return rej('no result');
+            }
+            res(result);
+        }).catch(rej);
     });
 };
 
 const Giphy = {
-    search: q => {
-        return search(q, 0);
-    },
-    searchWithOffset: (q, offset) => {
-        return search(q, offset);
+    search: (q, limit, offset) => {
+        console.log('q', q, 'limit', limit, 'offset', offset);
+        return search(q, limit, offset);
     }
 };
 
+const Dooray = {
+    openModal: ({ channelId, token = '', triggerId, dialog }) => {
+        return Future((rej, res) => {
+            axios.post(`https://nhnent.dooray.com/messenger/api//channels/${channelId}/dialogs`,
+                { triggerId, dialog },
+                { headers: { token } }
+            ).then(res).catch(rej);
+        });
+    },
+    webHook: def(
+        'webHook :: String -> Object -> Future Object Object',
+        (url, body) => {
+            return Future((rej, res) => {
+                axios.post(url, body).then(res).catch(rej);
+            });
+        }
+    )
+}
+
 export default {
-    Giphy
+    Giphy,
+    Dooray
 };

@@ -1,28 +1,30 @@
 module.exports = {
-  apps: [{
-    name: 'DoorayGiphy',
-    script: './dist/index.js',
-    "ignore_watch": ['node_modules'],
-    "watch_options": {
-      "followSymlinks": false
-    },
-    env: {
-      NODE_ENV: 'development',
-      watch: true
-    },
-    env_production: {
-      NODE_ENV: 'production'
-    }
-  }],
+    apps: [{
+        name: 'DoorayGiphy',
+        script: './dist/index.js',
+        "ignore_watch": ['node_modules'],
+        "watch_options": {
+            "followSymlinks": false
+        },
+        env: {
+            NODE_ENV: 'development',
+            watch: true,
+            PORT: 3000
+        },
+        env_production: {
+            NODE_ENV: 'production',
+            PORT: 8080
+        }
+    }],
 
-  deploy: {
-    production: {
-      user: 'node',
-      host: '212.83.163.1',
-      ref: 'origin/master',
-      repo: 'git@github.com:repo.git',
-      path: '/var/www/production',
-      'post-deploy': 'npm install && pm2 reload ecosystem.config.js --env production'
+    deploy: {
+        production: {
+            user: 'ne11243',
+            host: 'doocon.nhnent.com',
+            ref: 'origin/develop',
+            repo: 'https://github.com/seulgi0711/dooray_giphy.git',
+            path: '/home1/ne11243/test',
+            'post-deploy': 'npm install && npm run build'
+        }
     }
-  }
 };
