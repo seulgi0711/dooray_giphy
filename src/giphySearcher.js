@@ -229,14 +229,16 @@ export const searchImageFromDialog = reqBody => {
 };
 
 // "createNoResultResponse :: Object -> Future Object Object",
-export const createNoResultResponse = pipe(
-  juxt([
-    pipe(
-      createNoResultKeywordText,
-      Future.of
-    ),
-    createNoResultAttachment
-  ]),
-  Future.parallel(Infinity),
-  map(mergeAll)
-);
+export const createNoResultResponse = obj => {
+  return pipe(
+    juxt([
+      pipe(
+        createNoResultKeywordText,
+        Future.of
+      ),
+      createNoResultAttachment
+    ]),
+    Future.parallel(Infinity),
+    map(mergeAll)
+  )(obj);
+};

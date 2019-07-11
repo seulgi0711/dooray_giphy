@@ -1,6 +1,4 @@
-import { addIndex, curry, keys, map, reduce } from "ramda";
-import complement from "ramda/es/complement";
-// import { complement } from "ramda";
+import { addIndex, complement, curry, keys, map, reduce } from "ramda";
 
 export const wrapWithObject = curry((key, value) => {
   return {
@@ -58,3 +56,11 @@ export const isNothing = m => {
 };
 
 export const isJust = complement(isNothing);
+
+export const runFutureFork = curry((l, r, f) => {
+  f.fork(l, r);
+});
+
+export const runFutureValue = curry((r, f) => {
+  f.fork(console.error.bind(console), r, f);
+});

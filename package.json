@@ -2,7 +2,7 @@
   "name": "dooray_giphy",
   "versdeion": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "test": "mocha src/**/*.spec.js --require babel-register",
     "build": "babel src -s -D -d dist",
@@ -17,7 +17,6 @@
     "@types/express": "^4.17.0",
     "@types/lodash": "^4.14.134",
     "@types/query-string": "^6.3.0",
-    "@types/ramda": "^0.26.10",
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
@@ -29,6 +28,8 @@
     "sanctuary-maybe": "^1.2.0"
   },
   "devDependencies": {
+    "@types/node": "^12.0.10",
+    "@types/ramda": "types/npm-ramda#dist",
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "babel-register": "^6.26.0",

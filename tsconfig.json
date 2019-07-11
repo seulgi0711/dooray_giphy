@@ -13,13 +13,20 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "baseUrl": ".",
-    "types": ["ramda"],
     "paths": {
       "~/*": ["./src/*"],
       "@@types/*": ["./@types/*"]
     },
     "typeRoots": ["./node_modules/@types", "./@types"]
   },
-  "include": ["./src/**/*"],
-  "exclude": ["node_modules", "coverage", "dist", "built", ".cache"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "@types",
+    "coverage",
+    "dist",
+    "built",
+    ".cache"
+  ]
 }
