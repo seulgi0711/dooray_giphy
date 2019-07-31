@@ -2,8 +2,9 @@ module.exports = {
   apps: [
     {
       name: "DoorayGiphy",
-      script: "./dist/src/index.js",
+      script: "./dist/index.js",
       ignore_watch: ["node_modules"],
+      watch: ["dist"],
       watch_options: {
         followSymlinks: false
       },

@@ -20,7 +20,7 @@ import {
   split,
   trim
 } from "ramda";
-import Maybe from "sanctuary-maybe";
+import { Either } from "ramda-fantasy";
 import { BUTTON_TYPE } from "../constant";
 
 // "getImageUrl :: String -> Object -> String",
@@ -108,9 +108,10 @@ export const extractOffset = pipe(
 //  "getActionName :: ReqBody -> String",
 export const getActionName = propOr(BUTTON_TYPE.NEXT, "actionName");
 
-// "validateKeyword :: String -> Maybe String",
-export const validateKeyword = keyword => {
-  return isEmpty(keyword) ? Maybe.Nothing() : Maybe.Just(keyword);
+export const validateKeyword = (keyword: string): Either<any, string> => {
+  return isEmpty(keyword)
+    ? Either.Left({ type: "Empty Keyword" })
+    : Either.Right(keyword);
 };
 
 // "extractChannelId :: ReqBody -> String",

@@ -24,6 +24,7 @@
     "lodash": "^4.17.11",
     "query-string": "^6.1.0",
     "ramda": "^0.26.1",
+    "ramda-fantasy": "^0.8.0",
     "sanctuary-either": "^1.2.0",
     "sanctuary-maybe": "^1.2.0"
   },

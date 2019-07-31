@@ -1,6 +1,15 @@
 import axios from "axios";
 import Future from "fluture";
-import { ifElse, pathSatisfies, equals, mergeDeepRight, curry } from "ramda";
+import {
+  curry,
+  equals,
+  ifElse,
+  map,
+  mergeDeepRight,
+  path,
+  pathOr,
+  pathSatisfies
+} from "ramda";
 
 const defaultParams = {
   api_key: "8JyP74RbDTroHrzNyXt8zaAWkBeIe81l",
@@ -11,7 +20,7 @@ const defaultParams = {
 const handleSearchResult = curry((reject, resolve, response) => {
   ifElse(
     pathSatisfies(equals(0), ["data", "pagination", "count"]),
-    () => reject({ error: "No Result" }),
+    () => reject({ type: "No Result" }),
     resolve
   )(response);
 });
@@ -28,9 +37,11 @@ const search = (q: string, limit: number, offset: number) => {
 
 const Giphy = {
   search: (q: string, limit?: number, offset?: number) => {
-    if (!limit) limit = 1;
+    if (!limit) limit = 5;
     if (!offset) offset = 0;
-    return search(q, limit, offset);
+    return search(q, limit, offset)
+      .map(pathOr([], ["data", "data"]))
+      .map(map(path(["images", "fixed_height_downsampled", "url"])));
   }
 };
 

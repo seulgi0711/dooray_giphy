@@ -1,18 +1,19 @@
 export const ACTION_TYPE = {
-    BUTTON: "button"
+  BUTTON: 'button'
 };
 
 export const BUTTON_TYPE = {
-    SEND: "SEND",
-    NEXT: "NEXT",
-    PREV: "PREV",
-    SEARCH: 'SEARCH',
-    SEARCH_MODAL: 'SEARCH_MODAL'
+  SEND: 'SEND',
+  NEXT: 'NEXT',
+  PREV: 'PREV',
+  SEARCH: 'SEARCH',
+  SEARCH_MODAL: 'SEARCH_MODAL',
+  CLOSE: 'Close'
 };
 
 export const RESPONSE_TYPE = {
-    IN_CHANNEL: "inChannel",
-    EPHEMERAL: "ephemeral"
+  IN_CHANNEL: 'inChannel',
+  EPHEMERAL: 'ephemeral'
 };
 
 export const Unit = undefined;

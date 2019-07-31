@@ -32,16 +32,17 @@ app.get("/monitor/l7check", (req, res) => {
 });
 
 app.post("/giphy", (req, res) => {
-  commandHandler(req).fork(
-    cond([
-      [
-        equals("no result"),
-        () => createNoResultResponse(req.body).value(result => res.send(result))
-      ],
-      [T, console.error]
-    ]),
-    result => res.send(result)
-  );
+  console.log("req", req);
+  // commandHandler(req).fork(
+  //   cond([
+  //     [
+  //       equals("no result"),
+  //       () => createNoResultResponse(req.body).value(result => res.send(result))
+  //     ],
+  //     [T, console.error]
+  //   ]),
+  //   result => res.send(result)
+  // );
 });
 
 app.post("/req", (req, res) => {
